@@ -25,8 +25,14 @@ def change_language(request):
     """
     lang = request.GET.get('lang', 'en')
     if lang in ['tr', 'en']:
+        # Django versiyonuna göre session key'i ayarla
+        if hasattr(translation, 'LANGUAGE_SESSION_KEY'):
+            request.session[translation.LANGUAGE_SESSION_KEY] = lang
+        else:
+            # Eski Django versiyonları için
+            request.session['django_language'] = lang
+        # Dil değişikliğini aktifleştir
         translation.activate(lang)
-        request.session[translation.LANGUAGE_SESSION_KEY] = lang
     return redirect('log_hub:log_view')
 
 
@@ -94,6 +100,7 @@ def log_view(request):
                 'limit': DEFAULT_LOG_LIMIT,
                 'status_code': '',
                 'exclude': '',
+                'LANGUAGE_CODE': translation.get_language(),
             })
         
         log_files = [f for f in os.listdir(log_dir) if f.endswith('.log')]  # .log dosyalarını bul
@@ -114,6 +121,7 @@ def log_view(request):
                 'limit': DEFAULT_LOG_LIMIT,
                 'status_code': '',
                 'exclude': '',
+                'LANGUAGE_CODE': translation.get_language(),
             })
         
         log_type = request.GET.get('log_type', log_files[0] if log_files else None)  # Seçilen log dosyası
@@ -143,6 +151,7 @@ def log_view(request):
                 'limit': limit,
                 'status_code': status_code,
                 'exclude': exclude,
+                'LANGUAGE_CODE': translation.get_language(),
             })
         
         try:
@@ -163,6 +172,7 @@ def log_view(request):
                 'limit': limit,
                 'status_code': status_code,
                 'exclude': exclude,
+                'LANGUAGE_CODE': translation.get_language(),
             })
 
         logs = []
@@ -180,7 +190,7 @@ def log_view(request):
                     # Filtreleme
                     if exclude and any(kelime in line.lower() for kelime in exclude_keywords):
                         continue
-                    if status_code and status_code != log_data["status_code"]:
+                    if status_code and str(status_code) != str(log_data["status_code"]):
                         continue
                     if log_level and log_level != log_data["level"]:
                         continue
@@ -218,6 +228,7 @@ def log_view(request):
             'limit': limit,
             'status_code': status_code,
             'exclude': exclude,
+            'LANGUAGE_CODE': translation.get_language(),
         })
     except Exception as e:
         template_name = getattr(settings, 'LOG_HUB_TEMPLATE', 'log_hub/logging.html')
@@ -234,6 +245,7 @@ def log_view(request):
             'limit': DEFAULT_LOG_LIMIT,
             'status_code': '',
             'exclude': '',
+            'LANGUAGE_CODE': translation.get_language(),
         })
 
 

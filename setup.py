@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="django-log-hub",
-    version="1.0.0",
+    version="1.0.5",
     author="Enes HAZIR",
     description="A reusable Django app for managing and viewing application logs",
     long_description=long_description,
@@ -16,7 +16,7 @@ setup(
     url="https://github.com/eneshazr/django-log-hub",
     packages=find_packages(),
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
@@ -25,11 +25,16 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Framework :: Django",
         "Framework :: Django :: 3.2",
         "Framework :: Django :: 4.0",
         "Framework :: Django :: 4.1",
         "Framework :: Django :: 4.2",
+        "Framework :: Django :: 5.0",
+        "Framework :: Django :: 5.1",
+        "Framework :: Django :: 5.2",
         "Topic :: System :: Logging",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -40,6 +45,7 @@ setup(
         "log_hub": [
             "templates/log_hub/*.html",
             "static/log_hub/*",
+            "locale/tr/LC_MESSAGES/*",
         ],
     },
     keywords="django, logging, admin, logs, monitoring, debug",
@@ -48,6 +54,5 @@ setup(
         "Source": "https://github.com/eneshazr/django-log-hub",
         "Documentation": "https://github.com/eneshazr/django-log-hub#readme",
     },
-    include_package_data=True,
     zip_safe=False,
 )

@@ -91,7 +91,7 @@ from django.urls import path, include
 
 urlpatterns = [
     # ... other URLs
-    path('admin/logs/', include('log_hub.urls')),
+    path('logs/', include('log_hub.urls')),  # You can change 'logs/' to any path you prefer
 ]
 ```
 
@@ -118,13 +118,20 @@ LANGUAGES = [
 ]
 USE_I18N = True
 USE_L10N = True
+
+# Add LocaleMiddleware for language switching
+MIDDLEWARE = [
+    # ... other middleware
+    'django.middleware.locale.LocaleMiddleware',  # Add this for language support
+    # ... other middleware
+]
 ```
 
 ## Usage
 
 ### Accessing the Log Hub
 
-Navigate to `/admin/logs/` in your browser. You must be logged in as an admin user to access the logs.
+Navigate to `/logs/` in your browser. You must be logged in as an admin user to access the logs.
 
 ### Features
 
@@ -171,6 +178,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 If you encounter any issues or have questions, please open an issue on GitHub.
 
 ## Changelog
+
+### 1.0.1
+- Added Turkish language support
+- Improved error handling with user-friendly messages
+- Enhanced security with path traversal protection
+- Added language switcher in UI
+- Fixed CSRF protection issues
+- Optimized log file reading performance
+- Added comprehensive internationalization (i18n) support
 
 ### 1.0.0
 - Initial release

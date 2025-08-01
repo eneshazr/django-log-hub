@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-log-hub"
-version = "1.0.0"
+version = "1.0.5"
 description = "A reusable Django app for managing and viewing application logs"
 readme = "README.md"
 license = {text = "MIT"}
 keywords = ["django", "logging", "admin", "logs", "monitoring", "debug"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -19,11 +19,16 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Framework :: Django",
     "Framework :: Django :: 3.2",
     "Framework :: Django :: 4.0",
     "Framework :: Django :: 4.1",
     "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
     "Topic :: System :: Logging",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -40,10 +45,11 @@ Repository = "https://github.com/eneshazr/django-log-hub"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=6.0",
-    "pytest-django>=4.0",
-    "black>=22.0",
-    "flake8>=4.0",
+    "pytest>=7.0",
+    "pytest-django>=4.5",
+    "black>=23.0",
+    "flake8>=6.0",
+    "isort>=5.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -51,4 +57,4 @@ where = ["."]
 include = ["log_hub*"]
 
 [tool.setuptools.package-data]
-"log_hub" = ["templates/log_hub/*.html", "static/log_hub/*"]
+"log_hub" = ["templates/log_hub/*.html", "static/log_hub/*", "locale/tr/LC_MESSAGES/*"]

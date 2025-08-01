@@ -221,7 +221,7 @@
                 </div>
                 <!-- Submit Button -->
                 <div class="col-md-1 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">{% trans "Filter" %}</button>
+                    <button type="submit" class="btn btn-primary w-100">{% if LANGUAGE_CODE == 'tr' %}Filtrele{% else %}{% trans "Filter" %}{% endif %}</button>
                 </div>
             </div>
         </form>
@@ -355,6 +355,23 @@
                         console.log("{% trans 'An error occurred' %}:", error);
                         alert("{% trans 'An error occurred. Please try again.' %}");
                     });
+                });
+            });
+
+            // Enter tuşu davranışını kontrol et
+            const filterForm = document.querySelector('form[method="get"]');
+            const allInputs = document.querySelectorAll('input, select, textarea');
+            
+            allInputs.forEach(input => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault(); // Varsayılan davranışı engelle
+                        
+                        // Sadece filtreleme formundaki input'lar için form submit et
+                        if (filterForm && filterForm.contains(this)) {
+                            filterForm.submit();
+                        }
+                    }
                 });
             });
     
