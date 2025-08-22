@@ -1,6 +1,7 @@
-# Django Admin Logs Hub
-# A reusable Django app for managing and viewing application logs
+"""
+Django Log Hub - Centralized logging and monitoring module for Django projects.
+"""
 
-__version__ = "1.0.3"
-__author__ = "Enes HAZIR"
-__email__ = "iletisim@eneshazir.com"
+__version__ = "1.0.6"
+
+default_app_config = 'log_hub.apps.LogHubConfig'

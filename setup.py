@@ -8,9 +8,9 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="django-log-hub",
-    version="1.0.5",
+    version="1.0.6",
     author="Enes HAZIR",
-    description="A reusable Django app for managing and viewing application logs",
+    description="Advanced logging and monitoring module for Django projects with centralized logging system",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/eneshazr/django-log-hub",
@@ -46,9 +46,10 @@ setup(
             "templates/log_hub/*.html",
             "static/log_hub/*",
             "locale/tr/LC_MESSAGES/*",
+            "locale/en/LC_MESSAGES/*",
         ],
     },
-    keywords="django, logging, admin, logs, monitoring, debug",
+    keywords="django, logging, admin, logs, monitoring, debug, centralized logging, context manager, decorator",
     project_urls={
         "Bug Reports": "https://github.com/eneshazr/django-log-hub/issues",
         "Source": "https://github.com/eneshazr/django-log-hub",

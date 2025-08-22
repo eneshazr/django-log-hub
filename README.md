@@ -1,165 +1,259 @@
 # Django Log Hub
 
-A reusable Django app for managing and viewing application logs with a beautiful web interface.
+A centralized logging system for Django applications that aggregates multiple log messages into single, structured log entries while displaying them step-by-step in a beautiful HTML interface.
 
 ## Features
 
-- 📊 **Log Viewer**: View and filter application logs in real-time
-- 🔍 **Advanced Filtering**: Filter by log level, date range, status code, and custom keywords
-- 📁 **File Management**: Download and clear log files
-- 🎨 **Beautiful UI**: Modern Bootstrap-based interface
-- 🔐 **Security**: Admin-only access with proper permissions
-- ⚙️ **Configurable**: Customizable log directory and template paths
-- 📦 **Reusable**: Easy to integrate into any Django project
-- 🌍 **Internationalization**: Support for Turkish and English languages
+- **Centralized Logging**: Collect multiple log events related to a single operation into one aggregated log entry
+- **Step-by-Step Display**: View logs in a structured, easy-to-read HTML interface
+- **Multiple Usage Patterns**: Context manager, decorator, and global functions
+- **Automatic User Detection**: Automatically detect user information from request objects
+- **JSON Structured Logs**: All logs are saved in structured JSON format
+- **File Management**: Download, clear, and manage log files through the web interface
+- **Internationalization**: Support for multiple languages (English, Turkish)
+- **Backward Compatibility**: Maintains compatibility with existing code
 
 ## Installation
-
-### From PyPI
 
 ```bash
 pip install django-log-hub
 ```
 
-### From Source
+## Quick Setup
 
-```bash
-git clone https://github.com/eneshazr/django-log-hub.git
-cd django-log-hub
-pip install -e .
-```
-
-## Setup
-
-1. **Add to INSTALLED_APPS** in your Django settings:
+### 1. Add to INSTALLED_APPS
 
 ```python
+# settings.py
 INSTALLED_APPS = [
     # ... other apps
     'log_hub',
 ]
 ```
 
-2. **Configure logging** in your Django settings:
+### 2. Add URLs
 
 ```python
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'json': {
-            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
-            'format': '%(levelname)s %(asctime)s %(name)s %(process)d %(thread)d %(message)s %(status_code)s %(taskName)s %(request)s',
-        },
-    },
-    'handlers': {
-        'file_info': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'info.log'),
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'json',
-        },
-        'file_error': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'error.log'),
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'json',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file_info', 'file_error'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-}
-
-# Create logs directory
-if not os.path.exists(os.path.join(BASE_DIR, 'logs')):
-    os.makedirs(os.path.join(BASE_DIR, 'logs'))
-```
-
-3. **Add URLs** to your main urls.py:
-
-```python
+# urls.py
 from django.urls import path, include
 
 urlpatterns = [
     # ... other URLs
-    path('logs/', include('log_hub.urls')),  # You can change 'logs/' to any path you prefer
+    path('logs/', include('log_hub.urls')),
 ]
 ```
 
-4. **Run migrations** (if any):
+### 3. Add Middleware (Optional)
 
-```bash
-python manage.py migrate
+```python
+# settings.py
+MIDDLEWARE = [
+    # ... other middleware
+    'log_hub.services.LoggingMiddleware',
+]
 ```
+
+### 4. Configure Log Directory (Optional)
+
+```python
+# settings.py
+LOG_HUB_LOG_DIR = 'logs'  # Default is 'logs'
+```
+
+## Usage Examples
+
+### 1. Context Manager (Recommended)
+
+```python
+from log_hub.services import DynamicLogger
+
+def process_data(request):
+    with DynamicLogger("Data Processing", user_id=request.user.username) as logger:
+        logger.step("Starting data processing", {"data_size": 1000})
+        logger.step("Validating data", {"valid_records": 950})
+        logger.warning("50 records have missing data")
+        logger.step("Saving to database", {"table": "users"})
+        
+        result = {"status": "success", "processed": 950}
+        return result
+```
+
+### 2. Global Functions
+
+```python
+from log_hub.services import log_step, log_info, log_warning, log_error, finish_logging
+
+def process_user_data(user_id, data):
+    log_step("Starting user data processing", {"user_id": user_id})
+    log_info("Data validation completed")
+    log_step("Database operation", {"operation": "insert"})
+    log_warning("Some fields were empty")
+    log_error("Database connection failed")
+    finish_logging()
+    
+    return {"status": "completed"}
+```
+
+### 3. Decorator
+
+```python
+from log_hub.services import aggregated_log
+
+@aggregated_log("User Operation")
+def create_user(request, user_data):
+    # This function will be automatically logged
+    # All steps will be saved in one line but displayed step-by-step in HTML
+    user = User.objects.create(**user_data)
+    return {"user_id": user.id, "status": "created"}
+```
+
+### 4. API Endpoint Example
+
+```python
+from log_hub.services import DynamicLogger
+from django.http import JsonResponse
+
+def api_endpoint(request):
+    with DynamicLogger("API Operation", user_id=request.user.username) as logger:
+        logger.step("Request received", {"method": request.method, "path": request.path})
+        logger.step("Parameter validation", {"params": request.data})
+        logger.step("Database query", {"query": "SELECT * FROM users"})
+        logger.step("Response preparation", {"status_code": 200})
+        
+        return JsonResponse({"status": "success"})
+```
+
+### 5. Serializer Example
+
+```python
+from log_hub.services import log_step, log_info, finish_logging
+
+def to_representation(self, instance):
+    log_step("Starting data processing", {"shipment_id": instance.id})
+    
+    if instance.src_station:
+        representation['src_station'] = StationSerializer(instance.src_station).data
+        log_step("src_station processed", {"station_id": instance.src_station.id})
+    
+    if instance.dst_station:
+        representation['dst_station'] = StationSerializer(instance.dst_station).data
+        log_step("dst_station processed", {"station_id": instance.dst_station.id})
+    
+    log_step("items processed", {"item_count": instance.shipment_items.count()})
+    finish_logging()
+    return representation
+```
+
+## Key Features
+
+### Centralized Logging
+- All log messages for a single operation are collected in a list
+- Saved as a single JSON log entry before the function returns
+- Displayed step-by-step in the HTML interface
+
+### Automatic Context
+- User information is automatically detected from request objects
+- Module names are automatically extracted from calling functions
+- Timestamps and duration tracking
+
+### Multiple Usage Patterns
+- **DynamicLogger**: Context manager for easy usage
+- **Global Functions**: Simple log_step, log_info, log_warning, log_error
+- **@aggregated_log**: Decorator for automatic function logging
+- **LoggingMiddleware**: Automatic HTTP request logging
+
+### HTML Interface
+- Beautiful, responsive web interface
+- Filter logs by date, level, status code
+- Search and exclude functionality
+- Download and clear log files
+- Step-by-step log display with zebra striping
+- Special handling for Django tracebacks
+
+## Benefits
+
+- **Performance**: Single file write operation per function
+- **Organization**: Related logs are grouped together
+- **Readability**: Step-by-step display in HTML
+- **Flexibility**: Can be used for any type of operation
+- **Easy Integration**: Simple to integrate into existing projects
+- **Minimal Code**: Less code writing required
+- **Automatic Context**: Automatic user and module information
 
 ## Configuration
 
-You can customize the app behavior using these settings:
+### Settings
 
 ```python
-# Log Hub Configuration
-LOG_HUB_LOG_DIR = os.path.join(BASE_DIR, 'logs')  # Log directory path
-LOG_HUB_TEMPLATE = 'log_hub/logging.html'  # Custom template path
+# settings.py
 
-# Internationalization (i18n) Settings
-LANGUAGE_CODE = 'en'  # Default language
-LANGUAGES = [
-    ('en', 'English'),
-    ('tr', 'Türkçe'),
-]
-USE_I18N = True
-USE_L10N = True
+# Log directory (default: 'logs')
+LOG_HUB_LOG_DIR = 'logs'
 
-# Add LocaleMiddleware for language switching
-MIDDLEWARE = [
-    # ... other middleware
-    'django.middleware.locale.LocaleMiddleware',  # Add this for language support
-    # ... other middleware
+# Language settings
+LANGUAGE_CODE = 'en'  # or 'tr'
+```
+
+### URL Patterns
+
+```python
+# urls.py
+from django.urls import path, include
+
+urlpatterns = [
+    path('logs/', include('log_hub.urls')),
 ]
 ```
 
-## Usage
+## API Reference
 
-### Accessing the Log Hub
+### DynamicLogger
 
-Navigate to `/logs/` in your browser. You must be logged in as an admin user to access the logs.
+```python
+with DynamicLogger(operation_name, user_id=None, logger_name=None) as logger:
+    logger.step(message, details=None)
+    logger.warning(message, details=None)
+    logger.error(message, details=None)
+```
 
-### Features
+### Global Functions
 
-- **Log File Selection**: Choose which log file to view
-- **Filtering**: Filter logs by:
-  - Log level (INFO, WARNING, ERROR)
-  - Date range
-  - Status code
-  - Search keywords
-  - Exclude keywords
-- **File Management**:
-  - Download log files
-  - Clear log files
-- **Real-time Viewing**: View logs in a beautiful accordion interface
-- **Language Support**: Switch between Turkish and English interfaces
+```python
+log_step(message, details=None)
+log_info(message)
+log_warning(message)
+log_error(message)
+finish_logging()
+```
 
-### API Endpoints
+### Decorator
 
-- `GET /logs/` - View logs with filtering
-- `GET /logs/change-language/` - Change interface language
-- `GET /logs/download/<filename>/` - Download log file
-- `POST /logs/clear/<filename>/` - Clear log file
+```python
+@aggregated_log(header=None, logger_name=None)
+def your_function():
+    pass
+```
 
-## Requirements
+## Log Format
 
-- Python 3.8+
-- Django 3.2+
-- python-json-logger 2.0+
+Logs are saved in JSON format:
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:00",
+  "level": "INFO",
+  "logger_name": "your_module",
+  "header": "Operation Name",
+  "header_context": {"user": "username"},
+  "message": "Formatted log message",
+  "lines": [
+    {"level": "INFO", "message": "Step 1"},
+    {"level": "WARNING", "message": "Warning message"},
+    {"level": "INFO", "message": "Step 2"}
+  ],
+  "duration_seconds": 1.5
+}
+```
 
 ## Contributing
 
@@ -175,22 +269,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-If you encounter any issues or have questions, please open an issue on GitHub.
-
-## Changelog
-
-### 1.0.1
-- Added Turkish language support
-- Improved error handling with user-friendly messages
-- Enhanced security with path traversal protection
-- Added language switcher in UI
-- Fixed CSRF protection issues
-- Optimized log file reading performance
-- Added comprehensive internationalization (i18n) support
-
-### 1.0.0
-- Initial release
-- Log viewing and filtering
-- File management (download/clear)
-- Beautiful Bootstrap UI
-- Admin-only access
+For support and questions, please open an issue on GitHub or contact the maintainers.
