@@ -331,26 +331,34 @@ class LoggingMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        # Get user information more reliably
+        # Get user information before view execution
+        initial_user_id = 'anonymous'
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            initial_user_id = getattr(request.user, 'username', str(request.user.id))
+        elif hasattr(request, 'user') and request.user:
+            initial_user_id = getattr(request.user, 'username', str(request.user.id))
+
+        # Execute the view (this is where DRF authentication happens)
+        response = self.get_response(request)
+
+        # Get user information after view execution (DRF JWT auth is now complete)
         user_id = 'anonymous'
         if hasattr(request, 'user') and request.user.is_authenticated:
             user_id = getattr(request.user, 'username', str(request.user.id))
         elif hasattr(request, 'user') and request.user:
             user_id = getattr(request.user, 'username', str(request.user.id))
-        
+
+        # Log with the authenticated user (after DRF authentication)
         with DynamicLogger(
             operation_name=f"{request.method} {request.path}",
             user_id=user_id,
             logger_name="application"  # All logs go to the same file
         ) as logger:
-            
+
             logger.step("Request received", {"method": request.method, "path": request.path, "user": user_id})
-            
-            response = self.get_response(request)
-            
             logger.step("Response prepared", {"status_code": response.status_code})
-            
+
             if response.status_code >= 400:
                 logger.error(f"HTTP {response.status_code} error")
-            
-            return response
+
+        return response
